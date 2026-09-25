@@ -477,6 +477,6 @@ class Shopwell extends EventEmitter {
     }
 }
 
-const shopware: Shopwell = new Shopwell();
-window.Shopwell = shopware;
-export { shopware as Shopwell };
+const shopwell: Shopwell = new Shopwell();
+window.Shopwell = shopwell;
+export { shopwell as Shopwell };

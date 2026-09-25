@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import ShopwellComponent from './component';
-import { Shopwell } from './shopware';
+import { Shopwell } from './shopwell';
 
 class LifecycleTestComponent extends ShopwellComponent {
     public static initCount = 0;
@@ -244,10 +244,10 @@ describe('Shopwell runtime component lifecycle', () => {
     it('does not register observers and listeners on repeated construction', () => {
         const addEventListenerSpy = vi.spyOn(document, 'addEventListener');
         const observeSpy = vi.spyOn(MutationObserver.prototype, 'observe');
-        const shopwareConstructor = Shopwell.constructor as { new (): unknown };
+        const shopwellConstructor = Shopwell.constructor as { new (): unknown };
 
-        const first = new shopwareConstructor();
-        const second = new shopwareConstructor();
+        const first = new shopwellConstructor();
+        const second = new shopwellConstructor();
 
         expect(first).toBe(Shopwell);
         expect(second).toBe(Shopwell);

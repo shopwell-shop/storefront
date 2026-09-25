@@ -3,7 +3,7 @@
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 
 return static function (ContainerConfigurator $container): void {
-    $container->parameters()->set('shopware.storefront.redirect_on_single_hit_fields', [
+    $container->parameters()->set('shopwell.storefront.redirect_on_single_hit_fields', [
         'productNumber',
         'ean',
         'manufacturerNumber',

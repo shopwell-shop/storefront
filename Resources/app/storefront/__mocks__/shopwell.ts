@@ -35,7 +35,7 @@ export const Shopwell = {
     serializeForm: vi.fn().mockReturnValue({}),
 };
 
-// Mirror what the real shopware.ts does so legacy components using
+// Mirror what the real shopwell.ts does so legacy components using
 // ({ Shopwell, ShopwellComponent } = window) also work in tests.
 (globalThis as Record<string, unknown>).ShopwellComponent = ShopwellComponent;
 (globalThis as Record<string, unknown>).Shopwell = Shopwell;
