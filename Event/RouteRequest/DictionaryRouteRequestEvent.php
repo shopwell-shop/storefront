@@ -8,6 +8,6 @@ use Shopwell\Core\Framework\Log\Package;
  * @codeCoverageIgnore
  */
 #[Package('discovery')]
-class SalutationRouteRequestEvent extends RouteRequestEvent
+class DictionaryRouteRequestEvent extends RouteRequestEvent
 {
 }
