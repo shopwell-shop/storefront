@@ -1,6 +1,6 @@
-import MembershipPurchasePlugin from 'src/plugin/loyalty/membership-purchase.plugin';
+import MembershipPurchasePlugin from 'src/plugin/membership/purchase.plugin';
 import { renderQrCode } from 'src/plugin/payment/payment-handover';
-import template from './membership-purchase.plugin.template.html';
+import template from './purchase.plugin.template.html';
 
 // the qr code is drawn on a canvas, which jsdom does not implement - the plugin only needs to know
 // that the content was accepted
@@ -15,16 +15,16 @@ jest.mock('src/plugin/payment/payment-handover', () => {
 });
 
 const options = {
-    purchaseUrl: '/account/loyalty/membership',
-    statusUrl: '/account/loyalty/json',
-    returnUrl: 'https://shop.test/account/loyalty',
+    purchaseUrl: '/account/membership/purchase',
+    statusUrl: '/account/membership/json',
+    returnUrl: 'https://shop.test/account/membership',
     qrHintTemplate: '请使用「%channel%」扫描二维码',
-    loyaltyMembershipProcessing: '正在创建支付',
-    loyaltyMembershipErrorGeneric: '开通失败',
-    loyaltyMembershipSdkUnsupported: '请在微信内打开',
-    loyaltyMembershipOpen: '支付未完成',
-    loyaltyMembershipActivated: '会员已开通',
-    loyaltyMembershipFailed: '开通未成功',
+    membershipProcessing: '正在创建支付',
+    membershipErrorGeneric: '开通失败',
+    membershipSdkUnsupported: '请在微信内打开',
+    membershipOpen: '支付未完成',
+    membershipActivated: '会员已开通',
+    membershipFailed: '开通未成功',
     pollInterval: 10,
     pollTimeout: 1000,
 };
@@ -105,7 +105,7 @@ describe('MembershipPurchasePlugin', () => {
 
         await plugin._purchase(document.querySelector('[data-membership-plan-id]'));
 
-        expect(document.querySelector('[data-membership-purchase-message]').textContent).toBe(options.loyaltyMembershipErrorGeneric);
+        expect(document.querySelector('[data-membership-purchase-message]').textContent).toBe(options.membershipErrorGeneric);
         expect(document.querySelector('[data-membership-plan-id]').disabled).toBe(false);
     });
 
@@ -114,7 +114,7 @@ describe('MembershipPurchasePlugin', () => {
         const publishSpy = jest.spyOn(plugin.$emitter, 'publish').mockImplementation(() => {});
 
         expect(plugin._onState({ state: 'activated' })).toBe(true);
-        expect(document.querySelector('[data-membership-purchase-message]').textContent).toBe(options.loyaltyMembershipActivated);
+        expect(document.querySelector('[data-membership-purchase-message]').textContent).toBe(options.membershipActivated);
         expect(publishSpy).toHaveBeenCalledWith('membershipPurchaseSuccess');
     });
 
@@ -123,7 +123,7 @@ describe('MembershipPurchasePlugin', () => {
         const errorSpy = jest.spyOn(plugin, '_publishError').mockImplementation(() => {});
 
         expect(plugin._onState({ state: 'failed' })).toBe(true);
-        expect(document.querySelector('[data-membership-purchase-message]').textContent).toBe(options.loyaltyMembershipFailed);
+        expect(document.querySelector('[data-membership-purchase-message]').textContent).toBe(options.membershipFailed);
         expect(errorSpy).toHaveBeenCalledWith('membership-order-failed');
     });
 
@@ -131,7 +131,7 @@ describe('MembershipPurchasePlugin', () => {
         const plugin = createPlugin();
 
         expect(plugin._onState({ state: 'open' })).toBe(false);
-        expect(document.querySelector('[data-membership-purchase-message]').textContent).toBe(options.loyaltyMembershipOpen);
+        expect(document.querySelector('[data-membership-purchase-message]').textContent).toBe(options.membershipOpen);
     });
 
     test('reads the state of the order from the membership page', async () => {
@@ -140,7 +140,7 @@ describe('MembershipPurchasePlugin', () => {
         global.fetch.mockResolvedValueOnce(
             jsonResponse({
                 success: true,
-                loyalty: { membershipOrders: [{ id: 'order-2', state: 'open' }, { id: 'order-1', state: 'activated' }] },
+                membership: { orders: [{ id: 'order-2', state: 'open' }, { id: 'order-1', state: 'activated' }] },
             }),
         );
 
@@ -151,7 +151,7 @@ describe('MembershipPurchasePlugin', () => {
     test('returns null when the order is not part of the answer', async () => {
         const plugin = createPlugin();
 
-        global.fetch.mockResolvedValueOnce(jsonResponse({ success: true, loyalty: { membershipOrders: [] } }));
+        global.fetch.mockResolvedValueOnce(jsonResponse({ success: true, membership: { orders: [] } }));
 
         expect(await plugin._fetchOrder('order-1')).toBeNull();
     });

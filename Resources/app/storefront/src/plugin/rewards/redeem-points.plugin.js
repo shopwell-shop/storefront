@@ -1,15 +1,19 @@
 import Plugin from 'src/plugin-system/plugin.class';
 
 /**
- * Handles redeeming loyalty points for the current cart.
+ * Redeems the customer's reward points for the current cart.
  *
- * The available points balance is loaded from the storefront endpoint, the redemption
- * request is sent to the storefront proxy which forwards it to the store-api route and
- * the cart is reloaded afterwards to reflect the new totals.
+ * The balance is read from the account endpoint, the redemption is posted to the storefront proxy that
+ * forwards it to the store-api route, and the cart is reloaded afterwards to show the new totals.
+ *
+ * The `data-loyalty-redeem-points-*` attributes and the include path of the component stay as they are:
+ * they are the surface a theme overrides, while this file is ours to move. The programme is called
+ * "rewards" in the account area and stays "loyalty" in the code that predates it - the names describe
+ * who owns the file, not which page renders it.
  *
  * @sw-package checkout
  */
-export default class LoyaltyRedeemPointsPlugin extends Plugin {
+export default class RedeemPointsPlugin extends Plugin {
     static options = {
         infoUrl: '',
         redeemUrl: '',
@@ -26,10 +30,10 @@ export default class LoyaltyRedeemPointsPlugin extends Plugin {
 
         this._submitButton.addEventListener('click', this._onSubmit.bind(this));
 
-        this._loadProgram();
+        this._loadRewards();
     }
 
-    async _loadProgram() {
+    async _loadRewards() {
         if (!this.options.infoUrl) {
             this._hidePlugin();
 
@@ -47,13 +51,13 @@ export default class LoyaltyRedeemPointsPlugin extends Plugin {
 
             const data = await response.json();
 
-            if (!data.success || !data.loyalty) {
+            if (!data.success || !data.rewards) {
                 this._hidePlugin();
 
                 return;
             }
 
-            this._program = data.loyalty;
+            this._rewards = data.rewards;
             this._renderBalance();
         } catch (error) {
             this._hidePlugin();
@@ -61,11 +65,11 @@ export default class LoyaltyRedeemPointsPlugin extends Plugin {
     }
 
     _renderBalance() {
-        if (!this._balanceElement || !this._program) {
+        if (!this._balanceElement || !this._rewards) {
             return;
         }
 
-        this._balanceElement.textContent = String(this._program.pointsBalance ?? 0);
+        this._balanceElement.textContent = String(this._rewards.pointsBalance ?? 0);
     }
 
     async _onSubmit() {
@@ -87,7 +91,7 @@ export default class LoyaltyRedeemPointsPlugin extends Plugin {
             const data = await response.json().catch(() => ({}));
 
             if (response.ok && data.success) {
-                this.$emitter.publish('loyaltyRedeemPointsSuccess');
+                this.$emitter.publish('rewardsRedeemSuccess');
                 this._reloadCart();
 
                 return;
@@ -102,7 +106,7 @@ export default class LoyaltyRedeemPointsPlugin extends Plugin {
     }
 
     _showError(errorCode) {
-        this.$emitter.publish('loyaltyRedeemPointsError', errorCode);
+        this.$emitter.publish('rewardsRedeemError', errorCode);
     }
 
     _hidePlugin() {

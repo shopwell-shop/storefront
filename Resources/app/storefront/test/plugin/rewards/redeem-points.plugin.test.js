@@ -1,7 +1,7 @@
-import LoyaltyRedeemPointsPlugin from 'src/plugin/loyalty/loyalty-redeem-points.plugin';
-import template from './loyalty-redeem-points.plugin.template.html';
+import RedeemPointsPlugin from 'src/plugin/rewards/redeem-points.plugin';
+import template from './redeem-points.plugin.template.html';
 
-describe('LoyaltyRedeemPointsPlugin tests', () => {
+describe('RedeemPointsPlugin tests', () => {
     let reloadSpy;
 
     function jsonResponse(payload, ok = true) {
@@ -11,7 +11,7 @@ describe('LoyaltyRedeemPointsPlugin tests', () => {
     function createPlugin(options = {}) {
         const element = document.querySelector('[data-loyalty-redeem-points]');
 
-        return new LoyaltyRedeemPointsPlugin(element, options, 'LoyaltyRedeemPoints');
+        return new RedeemPointsPlugin(element, options, 'RedeemPoints');
     }
 
     beforeEach(() => {
@@ -22,9 +22,9 @@ describe('LoyaltyRedeemPointsPlugin tests', () => {
             getPlugin: jest.fn().mockReturnValue({ get: jest.fn().mockReturnValue([]) }),
         };
 
-        global.fetch = jest.fn().mockResolvedValue(jsonResponse({ success: true, loyalty: { pointsBalance: 0 } }));
+        global.fetch = jest.fn().mockResolvedValue(jsonResponse({ success: true, rewards: { pointsBalance: 0 } }));
 
-        reloadSpy = jest.spyOn(LoyaltyRedeemPointsPlugin.prototype, '_reloadCart').mockImplementation(() => {});
+        reloadSpy = jest.spyOn(RedeemPointsPlugin.prototype, '_reloadCart').mockImplementation(() => {});
     });
 
     afterEach(() => {
@@ -33,11 +33,11 @@ describe('LoyaltyRedeemPointsPlugin tests', () => {
     });
 
     test('renders the points balance from the info endpoint', async () => {
-        global.fetch.mockResolvedValue(jsonResponse({ success: true, loyalty: { pointsBalance: 120 } }));
+        global.fetch.mockResolvedValue(jsonResponse({ success: true, rewards: { pointsBalance: 120 } }));
 
-        const plugin = createPlugin({ infoUrl: '/account/loyalty/json', redeemUrl: '/account/loyalty/redeem-points' });
+        const plugin = createPlugin({ infoUrl: '/account/rewards/detail', redeemUrl: '/account/rewards/redeem-points' });
 
-        await plugin._loadProgram();
+        await plugin._loadRewards();
 
         expect(document.querySelector('[data-loyalty-redeem-points-balance]').textContent).toBe('120');
     });
@@ -45,15 +45,15 @@ describe('LoyaltyRedeemPointsPlugin tests', () => {
     test('hides the plugin when the info endpoint is not available', async () => {
         global.fetch.mockResolvedValueOnce(jsonResponse({}, false));
 
-        const plugin = createPlugin({ infoUrl: '/account/loyalty/json', redeemUrl: '/account/loyalty/redeem-points' });
+        const plugin = createPlugin({ infoUrl: '/account/rewards/detail', redeemUrl: '/account/rewards/redeem-points' });
 
-        await plugin._loadProgram();
+        await plugin._loadRewards();
 
         expect(document.querySelector('[data-loyalty-redeem-points]').classList.contains('d-none')).toBe(true);
     });
 
     test('posts the entered points and reloads the cart on success', async () => {
-        const plugin = createPlugin({ infoUrl: '/account/loyalty/json', redeemUrl: '/account/loyalty/redeem-points' });
+        const plugin = createPlugin({ infoUrl: '/account/rewards/detail', redeemUrl: '/account/rewards/redeem-points' });
 
         document.querySelector('[data-loyalty-redeem-points-input]').value = '50';
 
@@ -61,12 +61,12 @@ describe('LoyaltyRedeemPointsPlugin tests', () => {
 
         await plugin._onSubmit();
 
-        expect(global.fetch).toHaveBeenLastCalledWith('/account/loyalty/redeem-points', expect.objectContaining({ method: 'POST' }));
+        expect(global.fetch).toHaveBeenLastCalledWith('/account/rewards/redeem-points', expect.objectContaining({ method: 'POST' }));
         expect(reloadSpy).toHaveBeenCalled();
     });
 
     test('reports the error and stays enabled on failure', async () => {
-        const plugin = createPlugin({ infoUrl: '/account/loyalty/json', redeemUrl: '/account/loyalty/redeem-points' });
+        const plugin = createPlugin({ infoUrl: '/account/rewards/detail', redeemUrl: '/account/rewards/redeem-points' });
         const errorSpy = jest.spyOn(plugin, '_showError').mockImplementation(() => {});
 
         global.fetch.mockResolvedValueOnce(jsonResponse({ success: false, errorCode: 'CHECKOUT__LOYALTY_INSUFFICIENT_POINTS' }, false));

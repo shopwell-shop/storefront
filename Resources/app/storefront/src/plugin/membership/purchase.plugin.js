@@ -66,7 +66,7 @@ export default class MembershipPurchasePlugin extends Plugin {
         this._hideQrCode();
         this._setBusy(button, true);
         this._activeButton = button;
-        this._showMessage(this._text('loyaltyMembershipProcessing'), 'info');
+        this._showMessage(this._text('membershipProcessing'), 'info');
 
         const body = new FormData();
         body.append('planId', planId);
@@ -79,7 +79,7 @@ export default class MembershipPurchasePlugin extends Plugin {
 
             if (!response.ok || !data.success || !data.order) {
                 this._setBusy(button, false);
-                this._showMessage(this._text('loyaltyMembershipErrorGeneric'), 'danger');
+                this._showMessage(this._text('membershipErrorGeneric'), 'danger');
                 this._publishError(data.errorCode ?? null);
 
                 return;
@@ -88,7 +88,7 @@ export default class MembershipPurchasePlugin extends Plugin {
             this._handOver(data.order, button);
         } catch (error) {
             this._setBusy(button, false);
-            this._showMessage(this._text('loyaltyMembershipErrorGeneric'), 'danger');
+            this._showMessage(this._text('membershipErrorGeneric'), 'danger');
             this._publishError(null);
         }
     }
@@ -103,7 +103,7 @@ export default class MembershipPurchasePlugin extends Plugin {
         if (handover.kind === FLOW_REDIRECT && handover.htmlForm) {
             if (!submitHtmlForm(handover.htmlForm)) {
                 this._setBusy(button, false);
-                this._showMessage(this._text('loyaltyMembershipErrorGeneric'), 'danger');
+                this._showMessage(this._text('membershipErrorGeneric'), 'danger');
             }
 
             return;
@@ -128,14 +128,14 @@ export default class MembershipPurchasePlugin extends Plugin {
         }
 
         this._setBusy(button, false);
-        this._showMessage(this._text('loyaltyMembershipErrorGeneric'), 'danger');
+        this._showMessage(this._text('membershipErrorGeneric'), 'danger');
         this._publishError('unsupported-flow');
     }
 
     _payWithSdk(order, sdkParams, button) {
         if (!canPayWithSdk(sdkParams)) {
             this._setBusy(button, false);
-            this._showMessage(this._text('loyaltyMembershipSdkUnsupported'), 'danger');
+            this._showMessage(this._text('membershipSdkUnsupported'), 'danger');
 
             return;
         }
@@ -148,14 +148,14 @@ export default class MembershipPurchasePlugin extends Plugin {
             }
 
             this._setBusy(button, false);
-            this._showMessage(this._text('loyaltyMembershipOpen'), 'warning');
+            this._showMessage(this._text('membershipOpen'), 'warning');
         });
     }
 
     _showQrCode(order, qrContent, button) {
         if (!this._qrBox || !this._qrTarget) {
             this._setBusy(button, false);
-            this._showMessage(this._text('loyaltyMembershipErrorGeneric'), 'danger');
+            this._showMessage(this._text('membershipErrorGeneric'), 'danger');
 
             return;
         }
@@ -165,7 +165,7 @@ export default class MembershipPurchasePlugin extends Plugin {
         }
 
         renderQrCode(this._qrTarget, qrContent)
-            .catch(() => this._showMessage(this._text('loyaltyMembershipErrorGeneric'), 'danger'))
+            .catch(() => this._showMessage(this._text('membershipErrorGeneric'), 'danger'))
             .finally(() => this._setBusy(button, false));
 
         this._qrBox.classList.remove('d-none');
@@ -193,7 +193,7 @@ export default class MembershipPurchasePlugin extends Plugin {
 
     _onState(order) {
         if (order.state === 'activated') {
-            this._showMessage(this._text('loyaltyMembershipActivated'), 'success');
+            this._showMessage(this._text('membershipActivated'), 'success');
             this.$emitter.publish('membershipPurchaseSuccess');
             window.setTimeout(() => window.location.reload(), 1200);
 
@@ -201,13 +201,13 @@ export default class MembershipPurchasePlugin extends Plugin {
         }
 
         if (order.state === 'failed') {
-            this._showMessage(this._text('loyaltyMembershipFailed'), 'danger');
+            this._showMessage(this._text('membershipFailed'), 'danger');
             this._publishError('membership-order-failed');
 
             return true;
         }
 
-        this._showMessage(this._text('loyaltyMembershipOpen'), 'info');
+        this._showMessage(this._text('membershipOpen'), 'info');
 
         return false;
     }
@@ -221,11 +221,11 @@ export default class MembershipPurchasePlugin extends Plugin {
             const response = await fetch(this.options.statusUrl, { method: 'GET' });
             const data = await response.json().catch(() => ({}));
 
-            if (!response.ok || !data.success || !Array.isArray(data.loyalty?.membershipOrders)) {
+            if (!response.ok || !data.success || !Array.isArray(data.membership?.orders)) {
                 return null;
             }
 
-            return data.loyalty.membershipOrders.find((order) => order.id === orderId) ?? null;
+            return data.membership.orders.find((order) => order.id === orderId) ?? null;
         } catch (error) {
             return null;
         }
